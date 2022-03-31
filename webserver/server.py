@@ -109,10 +109,45 @@ def index():
 
 @app.route('/postrecipe')
 def postrecipe():
-  return render_template("post_recipe.html")
+  return render_template("postrecipe.html")
+
+@app.route('/ingformpage')
+def ingformpage():
+  return render_template("ingformpage.html")
+
+@app.route('/ingform',methods=['POST'])
+def ingform():
+  ing = request.form['ingredient']
+  print(ing)
+  return redirect('/searchbying/'+ing)
+
+@app.route('/searchbying/<ingredient>')
+def searchbying(ingredient):
+  cursor = g.conn.execute("SELECT * FROM Post_Recipes AS PR, Needs as N WHERE N.ingredient='"+ingredient+"' AND PR.recipe_id=N.recipe_id")
+  recipes = []
+  for result in cursor:
+      # can also be accessed using result[0]
+    recipe_id=result['recipe_id']
+    ing_cursor=g.conn.execute("SELECT * FROM Needs WHERE recipe_id="+str(recipe_id))
+    recipe_dict={'name':result['name'],
+      'recipe_id':result['recipe_id'],
+      'username':result['username'],
+      'instructions':result['instructions'],
+      'ingredients':[]}
+    
+    for ing in ing_cursor:
+      recipe_dict['ingredients'].append(str(ing['measurement'])+' '+ing['units']+' '+ing['ingredient'])
+    recipes.append(recipe_dict)
+
+    ing_cursor.close()
+  cursor.close()
+  context = dict(data = recipes)
+
+  return render_template("searchbying.html",**context)
 
 # @app.route('/post')
-# def post():
+# def
+#  post():
 #   name = request.form['name']
 #   print(name)
 #   cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
@@ -141,7 +176,7 @@ def allrecipes():
   cursor.close()
   context = dict(data = recipes)
 
-  return render_template("all_recipes.html", **context)
+  return render_template("allrecipes.html", **context)
 
 # @app.route('/post-recipe', method=['POST'])
 # def post_recipe():
