@@ -1,0 +1,36 @@
+<html>
+    <style>
+        body{ 
+          font-size: 15pt;
+          font-family: arial;
+        }
+        .recipe_name{
+            font-size: 20pt;
+            font-weight: bold;
+        }
+        .recipe_id{
+            font-weight:bold;
+        }
+        .recipe_d{
+            font-style:italic;
+        }
+      </style>
+
+    <body> 
+        <h1>Recipes</h1>
+        <div>
+            {% for n in data %}
+            <div class="recipe_name">{{n.name}}</div>
+            <div class="recipe_id">Recipe Number: {{n.recipe_id}}</div>
+            <div class="username">By: {{n.username}}</div>
+            <ul>
+                {% for i in n.ingredients%}
+                    <li>{{i}}</li>
+                {% endfor %}
+            </ul>
+            <div>{{n.instructions}}</div>
+            
+            {% endfor %}
+        </div>
+    </body>
+</html>

@@ -30,18 +30,18 @@ app = Flask(__name__, template_folder=tmpl_dir)
 #     postgresql://USER:PASSWORD@<IP_OF_POSTGRE_SQL_SERVER>/<DB_NAME>
 #
 # For example, if you had username ewu2493, password foobar, then the following line would be:
-#
+#py
 #     DATABASEURI = "postgresql://ewu2493:foobar@<IP_OF_POSTGRE_SQL_SERVER>/postgres"
 #
 # For your convenience, we already set it to the class database
 
 # Use the DB credentials you received by e-mail
-DB_USER = "kt2803"
-DB_PASSWORD = "6209"
+DB_USER = "jjs2295"
+DB_PASSWORD = "Data123"
 
 DB_SERVER = "w4111.cisxo09blonu.us-east-1.rds.amazonaws.com"
 
-DATABASEURI = "postgresql://"+DB_USER+":"+DB_PASSWORD+"@"+DB_SERVER+"/w4111"
+DATABASEURI = "postgresql://"+DB_USER+":"+DB_PASSWORD+"@"+DB_SERVER+"/proj1part2"
 
 
 #
@@ -51,12 +51,13 @@ engine = create_engine(DATABASEURI)
 
 
 # Here we create a test table and insert some values in it
-engine.execute("""DROP TABLE IF EXISTS test;""")
-engine.execute("""CREATE TABLE IF NOT EXISTS test (
-  id serial,
-  name text
-);""")
-engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
+#COMMENTED
+# engine.execute("""DROP TABLE IF EXISTS test;""")
+# engine.execute("""CREATE TABLE IF NOT EXISTS test (
+#   id serial,
+#   name text
+# );""")
+# engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
 
 
 
@@ -103,92 +104,53 @@ def teardown_request(exception):
 #
 @app.route('/')
 def index():
-  """
-  request is a special object that Flask provides to access web request information:
+    print(request.args)
+    return render_template("index.html")
 
-  request.method:   "GET" or "POST"
-  request.form:     if the browser submitted a form, this contains the data in the form
-  request.args:     dictionary of URL arguments e.g., {a:1, b:2} for http://localhost?a=1&b=2
+@app.route('/postrecipe')
+def postrecipe():
+  return render_template("post_recipe.html")
 
-  See its API: http://flask.pocoo.org/docs/0.10/api/#incoming-request-data
-  """
-
-  # DEBUG: this is debugging code to see what request looks like
-  print(request.args)
-
-
-  #
-  # example of a database query
-  #
-  cursor = g.conn.execute("SELECT name FROM test")
-  names = []
+# @app.route('/post')
+# def post():
+#   name = request.form['name']
+#   print(name)
+#   cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
+#   g.conn.execute(text(cmd), name1 = name, name2 = name);
+#   return redirect('/')
+  
+@app.route('/allrecipes')
+def allrecipes():
+  cursor = g.conn.execute("SELECT * FROM Post_Recipes")
+  recipes = []
   for result in cursor:
-    names.append(result['name'])  # can also be accessed using result[0]
+      # can also be accessed using result[0]
+    recipe_id=result['recipe_id']
+    ing_cursor=g.conn.execute("SELECT * FROM Needs WHERE recipe_id="+str(recipe_id))
+    recipe_dict={'name':result['name'],
+      'recipe_id':result['recipe_id'],
+      'username':result['username'],
+      'instructions':result['instructions'],
+      'ingredients':[]}
+    
+    for ing in ing_cursor:
+      recipe_dict['ingredients'].append(str(ing['measurement'])+' '+ing['units']+' '+ing['ingredient'])
+    recipes.append(recipe_dict)
+
+    ing_cursor.close()
   cursor.close()
+  context = dict(data = recipes)
 
-  #
-  # Flask uses Jinja templates, which is an extension to HTML where you can
-  # pass data to a template and dynamically generate HTML based on the data
-  # (you can think of it as simple PHP)
-  # documentation: https://realpython.com/blog/python/primer-on-jinja-templating/
-  #
-  # You can see an example template in templates/index.html
-  #
-  # context are the variables that are passed to the template.
-  # for example, "data" key in the context variable defined below will be 
-  # accessible as a variable in index.html:
-  #
-  #     # will print: [u'grace hopper', u'alan turing', u'ada lovelace']
-  #     <div>{{data}}</div>
-  #     
-  #     # creates a <div> tag for each element in data
-  #     # will print: 
-  #     #
-  #     #   <div>grace hopper</div>
-  #     #   <div>alan turing</div>
-  #     #   <div>ada lovelace</div>
-  #     #
-  #     {% for n in data %}
-  #     <div>{{n}}</div>
-  #     {% endfor %}
-  #
-  context = dict(data = names)
+  return render_template("all_recipes.html", **context)
 
-
-  #
-  # render_template looks in the templates/ folder for files.
-  # for example, the below file reads template/index.html
-  #
-  return render_template("index.html", **context)
-
-#
-# This is an example of a different path.  You can see it at
-# 
-#     localhost:8111/another
-#
-# notice that the functio name is another() rather than index()
-# the functions for each app.route needs to have different names
-#
-@app.route('/another')
-def another():
-  return render_template("anotherfile.html")
-
-
-# Example of adding new data to the database
-@app.route('/add', methods=['POST'])
-def add():
-  name = request.form['name']
-  print(name)
-  cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
-  g.conn.execute(text(cmd), name1 = name, name2 = name);
-  return redirect('/')
-
+# @app.route('/post-recipe', method=['POST'])
+# def post_recipe():
+#   username=request.form['']
 
 @app.route('/login')
 def login():
     abort(401)
     this_is_never_executed()
-
 
 if __name__ == "__main__":
   import click
