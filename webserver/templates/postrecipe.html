@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
     <head>
-    <link rel="stylesheet" src="styles.css" type="text/css">
+        <link rel="stylesheet" type="text/css" href="style.css"/>
     </head>
  
     <body>
         <form method="POST" action="/post">
-            <p>Username: <input type="text" name="username"> </p>
+            <p>Username: <input type="text" name="username" value="{{data}}"></p>
             <p>Name of recipe: <input type="text" name="name"></p>
             <p>Ingredients (format as measurement, unit, ingredient; measurement...): <input type="text" name="ingredient"> </p>
-            <p>Instructions: <input type="text" name="ingredient"></p>
+            <p>Instructions: <input type="text" name="instructions"></p>
             <p><input type="submit" value="Submit"></p>
         </form>
     </body>
