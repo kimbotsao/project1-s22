@@ -16,6 +16,7 @@ Read about it online.
 """
 
 import os
+import re
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response
@@ -102,14 +103,100 @@ def teardown_request(exception):
 # see for routing: http://flask.pocoo.org/docs/0.10/quickstart/#routing
 # see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
 #
+
 @app.route('/')
-def index():
+def home():
+  return render_template("home.html")
+
+@app.route('/createaccount')
+def createaccount():
+  return render_template("createaccount.html")
+
+@app.route('/createaccountredirect',methods=['POST'])
+def createaccountredirect():
+  data={}
+  data['username']=request.form['username']
+  data['email']=request.form['email']
+  data['birthday']=request.form['birthday']
+  insert1="""INSERT INTO Users(username,email,birthday) VALUES (:username, :email, :birthday)"""
+  g.conn.execute(text(insert1),**data)
+  return redirect('/login')
+
+@app.route('/login')
+def login():
+  return render_template("login.html")
+
+@app.route('/loginredirect',methods=['POST'])
+def loginredirect():
+  username=request.form['username']
+  query="SELECT COUNT(*) FROM Users WHERE username='"+username+"'"
+  cursor=g.conn.execute(query)
+  for i in cursor:
+    if (i[0]==1):
+      return redirect('/index/'+username)
+  return redirect('/login')
+
+@app.route('/index/<username>')
+def index(username):
     print(request.args)
     return render_template("index.html")
 
 @app.route('/postrecipe')
 def postrecipe():
   return render_template("postrecipe.html")
+
+@app.route('/post/<username>',methods=['POST'])
+def post():
+  data={}
+  #data['username']=request.form['username']
+  ingredients=request.form['ingredient']
+  data['name']=request.form['name']
+  data['instructions']=request.form['instructions']
+  cursor = g.conn.execute("SELECT recipe_id FROM Post_Recipes ORDER BY recipe_id DESC LIMIT 1")
+  recipe_id=cursor[0]+1
+  data['recipe_id']=recipe_id
+  cursor.close()
+  cmd = 'INSERT INTO Post_Recipes(username, recipe_id, name, instructions) VALUES (:username,:recipe_id,:name,:instructions)'
+  g.conn.execute(text(cmd), **data)
+  ingredients2=ingredients.split(';')
+  for i in ingredients2:
+    i_list=i.split(',')
+    ing_dict={}
+    ing_dict['measurement']=float(i_list[0])
+    ing_dict['units']=i_list[1]
+    ing=i_list[2]
+    ing_dict['ingredient']=ing
+    ing_dict['recipe_id']=recipe_id
+    insert1="""IF NOT EXISTS (SELECT * FROM Ingredients WHERE ingredient=:ingredient)
+      INSERT INTO Ingredients(ingredient) VALUES (:ingredient)"""
+    g.conn.execute(insert1, ingredient=ing)
+    insert2="""INSERT INTO Needs(recipe_id, ingredient, measurement, units) VALUES (:recipe_id, :ingredient, :measurement, :units)"""
+    g.conn.execute(insert2, **ing_dict)
+  return redirect('/recipeposted/'+recipe_id)
+
+@app.route('/recipeposted/<recipe_id>')
+def recipeposted(recipe_id):
+  cursor = g.conn.execute("SELECT * FROM Post_Recipes WHERE recipe_id="+recipe_id)
+  recipes = []
+  for result in cursor:
+      # can also be accessed using result[0]
+    recipe_id=result['recipe_id']
+    ing_cursor=g.conn.execute("SELECT * FROM Needs WHERE recipe_id="+str(recipe_id))
+    recipe_dict={'name':result['name'],
+      'recipe_id':result['recipe_id'],
+      'username':result['username'],
+      'instructions':result['instructions'],
+      'ingredients':[]}
+    
+    for ing in ing_cursor:
+      recipe_dict['ingredients'].append(str(ing['measurement'])+' '+ing['units']+' '+ing['ingredient'])
+    recipes.append(recipe_dict)
+
+    ing_cursor.close()
+  cursor.close()
+  context = dict(data = recipes)
+
+  return render_template("recipeposted.html", **context)
 
 @app.route('/ingformpage')
 def ingformpage():
@@ -182,10 +269,10 @@ def allrecipes():
 # def post_recipe():
 #   username=request.form['']
 
-@app.route('/login')
-def login():
-    abort(401)
-    this_is_never_executed()
+# @app.route('/login')
+# def login():
+#     abort(401)
+#     this_is_never_executed()
 
 if __name__ == "__main__":
   import click
