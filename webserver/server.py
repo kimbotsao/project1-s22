@@ -182,6 +182,10 @@ def allrecipes():
 # def post_recipe():
 #   username=request.form['']
 
+@app.route('/userpage')
+def user():
+  cursor = g.conn.execute("SELECT * FROM Post_Recipes")
+
 @app.route('/login')
 def login():
     abort(401)
