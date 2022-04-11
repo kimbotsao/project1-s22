@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <link rel="stylesheet" src="styles.css">
-    </head>
-     
-
-    <body>
-        <h1>
-            Recipes 
-        </h1>
-
-        <p><a href="/postrecipe">Post Recipe</a></p>
-        <p><a href="/allrecipes">View all recipes</a></p>
-        <p><a href="/ingformpage">Search by ingredient</a></p>
-    </body>
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}" />
+</head>
+    
+<body>
+    <h1>
+        Recipes 
+    </h1>
+    <p>{{data}}</p>
+    <!-- <p><a href="/postrecipe/"{{data}}>Post Recipe</a></p>
+    <p><a href="/allrecipes"{{data}}>View all recipes</a></p>
+    <p><a href="/ingformpage"{{data}}>Search by ingredient</a></p> -->
+    <form method="POST" action="/ingform">
+        <input type="radio" name="page" value="postrecipe">Post Recipe<br>
+        <input type="radio" name="page" value="viewall">View All Recipes<br>
+        <input type="radio" name="page" value="searching">Search by ingredient<br>
+        <input type="submit" value="Submit">
+    </form>
+</body>
 </html>

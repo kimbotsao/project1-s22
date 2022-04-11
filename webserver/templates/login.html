@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}"/>
+    </head>
+<!-- add checking for if user is admin -->
+
+    <body> 
+        <form method="POST" action="/loginredirect">
+            <p>Username: <input type="text" name="username"> </p>
+            <p>What do you want to do:<br> <input type="radio" name="page" value="postrecipe">Post Recipe<br>
+                <input type="radio" name="page" value="allrecipes">View All Recipes<br>
+                <input type="radio" name="page" value="ingformpage">Search by ingredient<br>
+                <input type="radio" name="page" value="createlabel">Create a label<br>
+                <input type="radio" name="page" value="user">See my page<br> </p>
+            <p><input type="submit" value="Submit"></p>
+        </form>
+    </body>
+</html>

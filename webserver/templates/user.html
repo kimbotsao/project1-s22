@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}"/>
+    </head>
+
+    <body> 
+        <h1>
+            {{data}}'s Recipes
+        </h1>
+        <p><a href="/myrecipes/{{data}}">My Recipes</a></p>
+        <p><a href="/mybooks/{{data}}">My Recipebooks</a></p>
+    </body>
+</html>

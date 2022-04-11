@@ -1,3 +1,16 @@
-<form method="POST" action="/add">
-    <p>Form <input type="text" name="Ingredient: "> <input type="submit" value="Add"></p>
-    </form>
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}"/>
+    </head>
+ 
+    <body>
+        <form method="POST" action="/post">
+            <p>Username: <input type="text" name="username" value="{{data}}"></p>
+            <p>Name of recipe: <input type="text" name="name"></p>
+            <p>Ingredients (format as measurement, unit, ingredient; measurement...): <input type="text" name="ingredient"> </p>
+            <p>Instructions: <input type="text" name="instructions"></p>
+            <p><input type="submit" value="Submit"></p>
+        </form>
+    </body>
+</html>

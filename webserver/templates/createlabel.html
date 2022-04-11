@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}"/>
+    </head>
+
+    <body> 
+        <form method="POST" action="/labelform">
+            <p>Username: <input type="text" name="username" value="{{data}}"> </p>
+            <p>Label name: <input type="text" name="labelname"></p>
+            <p>Color: <input type="color" name="color"></p>
+            <input type="submit" value="Submit"></p>
+        </form>
+    </body>
+</html>

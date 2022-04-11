@@ -16,12 +16,13 @@ Read about it online.
 """
 
 import os
+import re
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
-app = Flask(__name__, template_folder=tmpl_dir)
+app = Flask(__name__, template_folder=tmpl_dir, static_url_path='/static')
 
 
 
@@ -102,17 +103,133 @@ def teardown_request(exception):
 # see for routing: http://flask.pocoo.org/docs/0.10/quickstart/#routing
 # see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
 #
+
 @app.route('/')
-def index():
+def home():
+  return render_template("home.html")
+
+@app.route('/createaccount')
+def createaccount():
+  return render_template("createaccount.html")
+
+@app.route('/createaccountredirect',methods=['POST'])
+def createaccountredirect():
+  data={}
+  data['username']=request.form['username']
+  data['email']=request.form['email']
+  data['birthday']=request.form['birthday']
+  data['isadmin']=request.form['isadmin']
+  insert1="""INSERT INTO Users(username,email,birthday) VALUES (:username, :email, :birthday)"""
+  g.conn.execute(text(insert1),**data)
+  if request.form.get('isadmin'):
+    insert2="""INSERT INTO Admins(username) VALUES (:username)"""
+  g.conn.execute(text(insert2),**data)
+  return redirect('/login')
+
+@app.route('/login')
+def login():
+  return render_template("login.html")
+
+@app.route('/loginredirect',methods=['POST'])
+def loginredirect():
+  username=request.form['username']
+  page=request.form['page']
+  query="SELECT COUNT(*) FROM Users WHERE username='"+username+"'"
+  cursor=g.conn.execute(query)
+  for i in cursor:
+    if (i[0]==1):
+      return redirect('/'+page+'/'+username)
+  return redirect('/login')
+
+@app.route('/index/<username>')
+def index(username):
     print(request.args)
-    return render_template("index.html")
+    context=dict(data=username)
+    return render_template("index.html",**context)
 
-@app.route('/postrecipe')
-def postrecipe():
-  return render_template("postrecipe.html")
+# @app.route('/redirect',method=['POST'])
+# def pageredirect():
 
-@app.route('/ingformpage')
-def ingformpage():
+
+@app.route('/postrecipe/<username>')
+def postrecipe(username):
+  context=dict(data=username)
+  return render_template("postrecipe.html",**context)
+
+@app.route('/post',methods=['POST'])
+def post():
+  # Get the form fields 
+  data={}
+  data['username']=request.form['username']
+  ingredients=request.form['ingredient']
+  data['name']=request.form['name']
+  data['instructions']=request.form['instructions']
+
+  # Get the index of the last posted recipe, add 1 
+  cursor = g.conn.execute("SELECT recipe_id FROM Post_Recipes ORDER BY recipe_id DESC LIMIT 1")
+  for i in cursor:
+    recipe_id=i[0]+1
+  data['recipe_id']=recipe_id
+  cursor.close()
+
+  # Insert the recipe into Post_Recipes
+  cmd = 'INSERT INTO Post_Recipes(username, recipe_id, name, instructions) VALUES (:username,:recipe_id,:name,:instructions)'
+  t=g.conn.execute(text(cmd), **data)
+  t.close()
+
+  # Insert the ingredients into the Needs table 
+  ingredients2=ingredients.split(';')
+  for i in ingredients2:
+    i_list=i.split(',')
+    ing_dict={}
+    ing_dict['measurement']=float(i_list[0])
+    ing_dict['units']=i_list[1]
+    ing=i_list[2]
+    ing_dict['ingredient']=ing
+    ing_dict['recipe_id']=recipe_id
+
+    # Find out whether or not the ingredient already exists in the table 
+    select="SELECT COUNT(*) FROM Ingredients WHERE ingredient=:ingredient"
+    cursor=g.conn.execute(text(select),ingredient=ing)
+    for n in cursor:
+      num=n[0]
+      print(num)
+    if (num == 0):
+      insert1="""
+        INSERT INTO Ingredients(ingredient) VALUES (:ingredient)"""
+      t=g.conn.execute(text(insert1), ingredient=ing)
+      t.close()
+    insert2="""INSERT INTO Needs(recipe_id, ingredient, measurement, units) VALUES (:recipe_id, :ingredient, :measurement, :units)"""
+    t=g.conn.execute(text(insert2), **ing_dict)
+    t.close()
+  return redirect('/recipeposted/'+str(recipe_id))
+
+@app.route('/recipeposted/<recipe_id>')
+def recipeposted(recipe_id):
+  cursor = g.conn.execute("SELECT * FROM Post_Recipes WHERE recipe_id="+recipe_id)
+  recipes = []
+  for result in cursor:
+      # can also be accessed using result[0]
+    recipe_id=result['recipe_id']
+    ing_cursor=g.conn.execute("SELECT * FROM Needs WHERE recipe_id="+str(recipe_id))
+    recipe_dict={'name':result['name'],
+      'recipe_id':result['recipe_id'],
+      'username':result['username'],
+      'instructions':result['instructions'],
+      'ingredients':[]}
+    
+    for ing in ing_cursor:
+      recipe_dict['ingredients'].append(str(ing['measurement'])+' '+ing['units']+' '+ing['ingredient'])
+    recipes.append(recipe_dict)
+
+    ing_cursor.close()
+  cursor.close()
+  context = dict(data = recipes)
+
+  return render_template("recipeposted.html", **context)
+
+@app.route('/ingformpage/<username>')
+def ingformpage(username):
   return render_template("ingformpage.html")
 
 @app.route('/ingform',methods=['POST'])
@@ -154,8 +271,8 @@ def searchbying(ingredient):
 #   g.conn.execute(text(cmd), name1 = name, name2 = name);
 #   return redirect('/')
   
-@app.route('/allrecipes')
-def allrecipes():
+@app.route('/allrecipes/<username>')
+def allrecipes(username):
   cursor = g.conn.execute("SELECT * FROM Post_Recipes")
   recipes = []
   for result in cursor:
@@ -178,18 +295,59 @@ def allrecipes():
 
   return render_template("allrecipes.html", **context)
 
-# @app.route('/post-recipe', method=['POST'])
-# def post_recipe():
-#   username=request.form['']
+@app.route('/user/<username>')
+def user(username):
+  context=dict(data=username)
+  return render_template("user.html",**context)
 
-@app.route('/userpage')
-def user():
-  cursor = g.conn.execute("SELECT * FROM Post_Recipes")
+@app.route('/myrecipes/<username>')
+def myrecipes(username):
+  recipes = []
+  rec_cursor = g.conn.execute("SELECT * FROM Post_Recipes WHERE username="+str(username))
+  for recipe in rec_cursor:
+    id=recipe['recipe_id']
+    ing_cursor=g.conn.execute("SELECT * FROM Needs WHERE recipe_id="+str(id))
+    recipe_dict={'name':recipe['name'],
+      'recipe_id':recipe['recipe_id'],
+      'username':recipe['username'],
+      'instructions':recipe['instructions'],
+      'ingredients':[]}
+    for ing in ing_cursor:
+      recipe_dict['ingredients'].append(str(ing['measurement'])+' '+ing['units']+' '+ing['ingredient'])
+    recipes.append(recipe_dict)
+    
+  rec_cursor.close()
+  context=dict(data=recipes)
+  return render_template("myrecipes.html",**context)
 
-@app.route('/login')
-def login():
-    abort(401)
-    this_is_never_executed()
+@app.route('/mybooks/<username>')
+def mybooks(username):
+  # implement recipe books page
+  books = []
+  bk_cursor = g.conn.execute("SELECT * FROM Owns_RecipeBooks WHERE username="+str(username))
+  for book in bk_cursor:
+    # do smth
+    i = 1
+  bk_cursor.close()
+  context=dict(data=books)
+  return render_template("mybooks.html",**context)
+
+@app.route('/createlabel/<username>')
+def createlabel(username):
+  context=dict(data=username)
+  return render_template("createlabel.html",**context)
+
+@app.route('/labelform',methods=['POST'])
+def labelform():
+  data={}
+  data['username']=request.form['username']
+  data['labelname']=request.form['labelname']
+  data['color']=request.form['color']
+  insert1="""INSERT INTO Create_Labels(username,labelname,color) VALUES (:username, :labelname, :color)"""
+  g.conn.execute(text(insert1),**data)
+  return redirect('/login')
+
+
 
 if __name__ == "__main__":
   import click
