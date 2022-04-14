@@ -231,7 +231,7 @@ def recipeposted(username,recipe_id):
 
 @app.route('/reviews/<username>/<recipe_id>')
 def reviews(username,recipe_id):
-  
+
   cursor = g.conn.execute("SELECT * FROM Leaves_Review WHERE recipe_id="+recipe_id)
   reviews=[]
   for i in cursor: 
@@ -294,7 +294,7 @@ def leavereview():
   data['rating']=int(request.form['rating'])
   data['body']=request.form['body']
 
-  cursor = g.conn.execute("SELECT review_id FROM Leaves_Review ORDER BY recipe_id DESC LIMIT 1")
+  cursor = g.conn.execute("SELECT review_id FROM Leaves_Review ORDER BY review_id DESC LIMIT 1")
   for i in cursor:
     review_id=i[0]+1
     print(review_id)
