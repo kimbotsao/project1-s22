@@ -22,7 +22,7 @@ from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
-app = Flask(__name__, template_folder=tmpl_dir)
+app = Flask(__name__, template_folder=tmpl_dir, static_url_path='/static')
 
 
 
@@ -118,8 +118,12 @@ def createaccountredirect():
   data['username']=request.form['username']
   data['email']=request.form['email']
   data['birthday']=request.form['birthday']
+  data['isadmin']=request.form['isadmin']
   insert1="""INSERT INTO Users(username,email,birthday) VALUES (:username, :email, :birthday)"""
   g.conn.execute(text(insert1),**data)
+  if request.form.get('isadmin'):
+    insert2="""INSERT INTO Admins(username) VALUES (:username)"""
+  g.conn.execute(text(insert2),**data)
   return redirect('/login')
 
 @app.route('/login')
@@ -293,14 +297,59 @@ def allrecipes(username):
 
   return render_template("allrecipes.html", **context)
 
-# @app.route('/post-recipe', method=['POST'])
-# def post_recipe():
-#   username=request.form['']
+@app.route('/user/<username>')
+def user(username):
+  context=dict(data=username)
+  return render_template("user.html",**context)
 
-# @app.route('/login')
-# def login():
-#     abort(401)
-#     this_is_never_executed()
+@app.route('/myrecipes/<username>')
+def myrecipes(username):
+  recipes = []
+  rec_cursor = g.conn.execute("SELECT * FROM Post_Recipes WHERE username="+str(username))
+  for recipe in rec_cursor:
+    id=recipe['recipe_id']
+    ing_cursor=g.conn.execute("SELECT * FROM Needs WHERE recipe_id="+str(id))
+    recipe_dict={'name':recipe['name'],
+      'recipe_id':recipe['recipe_id'],
+      'username':recipe['username'],
+      'instructions':recipe['instructions'],
+      'ingredients':[]}
+    for ing in ing_cursor:
+      recipe_dict['ingredients'].append(str(ing['measurement'])+' '+ing['units']+' '+ing['ingredient'])
+    recipes.append(recipe_dict)
+    
+  rec_cursor.close()
+  context=dict(data=recipes)
+  return render_template("myrecipes.html",**context)
+
+@app.route('/mybooks/<username>')
+def mybooks(username):
+  # implement recipe books page
+  books = []
+  bk_cursor = g.conn.execute("SELECT * FROM Owns_RecipeBooks WHERE username="+str(username))
+  for book in bk_cursor:
+    # do smth
+    i = 1
+  bk_cursor.close()
+  context=dict(data=books)
+  return render_template("mybooks.html",**context)
+
+@app.route('/createlabel/<username>')
+def createlabel(username):
+  context=dict(data=username)
+  return render_template("createlabel.html",**context)
+
+@app.route('/labelform',methods=['POST'])
+def labelform():
+  data={}
+  data['username']=request.form['username']
+  data['labelname']=request.form['labelname']
+  data['color']=request.form['color']
+  insert1="""INSERT INTO Create_Labels(username,labelname,color) VALUES (:username, :labelname, :color)"""
+  g.conn.execute(text(insert1),**data)
+  return redirect('/login')
+
+
 
 if __name__ == "__main__":
   import click

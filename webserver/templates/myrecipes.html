@@ -3,9 +3,9 @@
     <head>
         <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}"/>
     </head>
-    
+
     <body> 
-        <h1>Recipes</h1>
+        <h1>My Recipes</h1>
         <div>
             {% for n in data %}
             <div class="recipe_name">{{n.name}}</div>

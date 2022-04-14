@@ -3,13 +3,12 @@
     <head>
         <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}"/>
     </head>
-     
 
-    <body>
+    <body> 
         <h1>
-            Recipes 
+            {{data}}'s Recipes
         </h1>
-        <p><a href="/login">Login</a></p>
-        <p><a href="/createaccount">Create account</a></p>
+        <p><a href="/myrecipes/{{data}}">My Recipes</a></p>
+        <p><a href="/mybooks/{{data}}">My Recipebooks</a></p>
     </body>
 </html>

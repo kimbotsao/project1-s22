@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <link rel="stylesheet" src="styles.css">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}"/>
     </head>
 
     <body> 
@@ -9,7 +9,8 @@
             <p>Username: <input type="text" name="username"> </p>
             <p>Email: <input type="text" name="email"></p>
             <p>Birthday: <input type="date" name="birthday"></p>
-            <p><input type="submit" value="Submit"></p>
+            <p>Admin role (select for yes): <input type="checkbox" name="isadmin"><p>
+            <input type="submit" value="Submit"></p>
         </form>
     </body>
 </html>
