@@ -133,21 +133,20 @@ def login():
 @app.route('/loginredirect',methods=['POST'])
 def loginredirect():
   username=request.form['username']
-  page=request.form['page']
+  # page=request.form['page']
   query="SELECT COUNT(*) FROM Users WHERE username='"+username+"'"
   cursor=g.conn.execute(query)
   for i in cursor:
     if (i[0]==1):
-      return redirect('/'+page+'/'+username)
+      return redirect('/allrecipes/'+username)
   return redirect('/login')
 
 # This one hasn't been used yet 
 # Need to figure out how to pass the username to through html ... or keep using form 
-@app.route('/index/<username>')
+@app.route('/index')
 def index(username):
     print(request.args)
-    context=dict(data=username)
-    return render_template("index.html",**context)
+    return render_template("index.html")
 
 # @app.route('/redirect',method=['POST'])
 # def pageredirect():
@@ -195,7 +194,7 @@ def post():
     cursor=g.conn.execute(text(select),ingredient=ing)
     for n in cursor:
       num=n[0]
-      print(num)
+      #print(num)
     if (num == 0):
       insert1="""
         INSERT INTO Ingredients(ingredient) VALUES (:ingredient)"""
@@ -204,10 +203,10 @@ def post():
     insert2="""INSERT INTO Needs(recipe_id, ingredient, measurement, units) VALUES (:recipe_id, :ingredient, :measurement, :units)"""
     t=g.conn.execute(text(insert2), **ing_dict)
     t.close()
-  return redirect('/recipeposted/'+str(recipe_id))
+  return redirect('/recipeposted/'+str(data['username'])+'/'+str(recipe_id))
 
-@app.route('/recipeposted/<recipe_id>')
-def recipeposted(recipe_id):
+@app.route('/recipeposted/<username>/<recipe_id>')
+def recipeposted(username,recipe_id):
   cursor = g.conn.execute("SELECT * FROM Post_Recipes WHERE recipe_id="+recipe_id)
   recipes = []
   for result in cursor:
@@ -232,16 +231,18 @@ def recipeposted(recipe_id):
 
 @app.route('/ingformpage/<username>')
 def ingformpage(username):
-  return render_template("ingformpage.html")
+  context=dict(data=username)
+  return render_template("ingformpage.html",**context)
 
 @app.route('/ingform',methods=['POST'])
 def ingform():
   ing = request.form['ingredient']
+  username=request.form['username']
   print(ing)
-  return redirect('/searchbying/'+ing)
+  return redirect('/searchbying/'+username+'/'+ing)
 
-@app.route('/searchbying/<ingredient>')
-def searchbying(ingredient):
+@app.route('/searchbying/<username>/<ingredient>')
+def searchbying(username,ingredient):
   cursor = g.conn.execute("SELECT * FROM Post_Recipes AS PR, Needs as N WHERE N.ingredient='"+ingredient+"' AND PR.recipe_id=N.recipe_id")
   recipes = []
   for result in cursor:
@@ -261,6 +262,7 @@ def searchbying(ingredient):
     ing_cursor.close()
   cursor.close()
   context = dict(data = recipes)
+  context['username']=username
 
   return render_template("searchbying.html",**context)
 
@@ -293,7 +295,9 @@ def allrecipes(username):
 
     ing_cursor.close()
   cursor.close()
+  recipes.append
   context = dict(data = recipes)
+  context['username']=username
 
   return render_template("allrecipes.html", **context)
 
@@ -348,7 +352,6 @@ def labelform():
   insert1="""INSERT INTO Create_Labels(username,labelname,color) VALUES (:username, :labelname, :color)"""
   g.conn.execute(text(insert1),**data)
   return redirect('/login')
-
 
 
 if __name__ == "__main__":

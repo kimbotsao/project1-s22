@@ -6,10 +6,12 @@
  
     <body>
         <form method="POST" action="/post">
-            <p>Username: <input type="text" name="username" value="{{data}}"></p>
+            <input type="hidden" name="username" value="{{data}}">
             <p>Name of recipe: <input type="text" name="name"></p>
-            <p>Ingredients (format as measurement, unit, ingredient; measurement...): <input type="text" name="ingredient"> </p>
-            <p>Instructions: <input type="text" name="instructions"></p>
+            <!-- <p>Ingredients (format as measurement, unit, ingredient; measurement...): <input type="text" name="ingredient"> </p> -->
+            <p>Ingredients:  <textarea rows="10" cols="50" name="ingredient" placeholder="(format as measurement, unit, ingredient; measurement...)"></textarea></p>
+            <!-- <p>Instructions: <input type="text" name="instructions"></p> -->
+            <p>Instructions: <textarea rows="20" cols="50" name="instructions"></textarea></p>
             <p><input type="submit" value="Submit"></p>
         </form>
     </body>
