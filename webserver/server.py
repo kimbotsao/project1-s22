@@ -137,6 +137,8 @@ def loginredirect():
       return redirect('/'+page+'/'+username)
   return redirect('/login')
 
+# This one hasn't been used yet 
+# Need to figure out how to pass the username to through html ... or keep using form 
 @app.route('/index/<username>')
 def index(username):
     print(request.args)
