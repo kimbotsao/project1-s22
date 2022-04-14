@@ -17,7 +17,18 @@
                 {% endfor %}
             </ul>
             <div>{{n.instructions}}</div>
-            
+            <form method="POST" action="/leavereview">
+                <p>Review: <input type="text" name="body"> </p>
+                <p>Rating: 1<input type="radio" name="rating" value=1>
+                    2<input type="radio" name="rating" value=2>
+                    3<input type="radio" name="rating" value=3>
+                    4<input type="radio" name="rating" value=4>
+                    5<input type="radio" name="rating" value=5>
+                    <input type="hidden" name="username" value="{{username}}">
+                    <input type="hidden" name="recipe_id" value="{{n.recipe_id}}">
+                    <input type="submit" value="Submit"></p>
+            </form>
+            <p><a href="/reviews/{{username}}/{{n.recipe_id}}">See Reviews</a></p>
             {% endfor %}
         </div>
         <p><a href="/allrecipes/{{username}}">Return to Home</a></p>

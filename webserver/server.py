@@ -229,9 +229,29 @@ def recipeposted(username,recipe_id):
 
   return render_template("recipeposted.html", **context)
 
+@app.route('/reviews/<username>/<recipe_id>')
+def reviews(username,recipe_id):
+  
+  cursor = g.conn.execute("SELECT * FROM Leaves_Review WHERE recipe_id="+recipe_id)
+  reviews=[]
+  for i in cursor: 
+    r={}
+    r['review_id']=i['review_id']
+    r['body']=i['body']
+    r['rating']=i['rating']
+    r['username']=i['username']
+    reviews.append(r)
+  
+  cursor.close() 
+  context=dict(data=reviews)
+  context['recipe_id']=recipe_id
+  context['username']=username 
+  return render_template("reviews.html",**context)
+
 @app.route('/ingformpage/<username>')
 def ingformpage(username):
   context=dict(data=username)
+  
   return render_template("ingformpage.html",**context)
 
 @app.route('/ingform',methods=['POST'])
@@ -265,6 +285,28 @@ def searchbying(username,ingredient):
   context['username']=username
 
   return render_template("searchbying.html",**context)
+
+@app.route('/leavereview',methods=['POST'])
+def leavereview():
+  data={}
+  data['username']=request.form['username']
+  data['recipe_id']=int(request.form['recipe_id'])
+  data['rating']=int(request.form['rating'])
+  data['body']=request.form['body']
+
+  cursor = g.conn.execute("SELECT review_id FROM Leaves_Review ORDER BY recipe_id DESC LIMIT 1")
+  for i in cursor:
+    review_id=i[0]+1
+    print(review_id)
+  data['review_id']=review_id+1
+  cursor.close()
+
+  cmd = 'INSERT INTO Leaves_Review(review_id, rating, body, recipe_id, username) VALUES (:review_id, :rating, :body, :recipe_id, :username)'
+  t=g.conn.execute(text(cmd), **data)
+  t.close()
+
+  context=data
+  return render_template('reviewposted.html',**context)
 
 # @app.route('/post')
 # def

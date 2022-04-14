@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}"/>
+    </head>
+
+    <body> 
+        <h1>Reviews</h1>
+        <div>Recipe id: {{recipe_id}}</div>
+        <div>
+            {% for n in data %}
+            <div>Review id: {{n.review_id}}</div>
+            
+            <div>By: {{n.username}}</div>
+            <div>Body: {{n.body}}</div>
+            <div>By: {{n.rating}}</div>
+            <ul>
+                {% for i in n.ingredients%}
+                    <li>{{i}}</li>
+                {% endfor %}
+            </ul>
+            <div>{{n.instructions}}</div>
+            
+            {% endfor %}
+        </div>
+        <p><a href="/allrecipes/{{username}}">Return to Home</a></p>
+    </body>
+</html>
