@@ -60,7 +60,31 @@ engine = create_engine(DATABASEURI)
 # );""")
 # engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
 
+def format_recipe_dict(result):
+  
+  recipe_id=result['recipe_id']
+  ing_cursor=g.conn.execute("SELECT * FROM Needs WHERE recipe_id="+str(recipe_id))
+  recipe_dict={'name':result['name'],
+    'recipe_id':result['recipe_id'],
+    'username':result['username'],
+    'instructions':result['instructions'],
+    'ingredients':[]}
+    
+  for ing in ing_cursor:
+    recipe_dict['ingredients'].append(str(ing['measurement'])+' '+ing['units']+' '+ing['ingredient'])
 
+  ing_cursor.close()
+    
+  label_cursor=g.conn.execute("SELECT * FROM Create_Labels AS CL, Labels AS L WHERE recipe_id="+str(recipe_id)+" AND CL.label_name=L.label_name")
+  labels=[]
+  for l in label_cursor: 
+    label={}
+    label['label_name']=l['label_name']
+    label['color']=l['color']
+    labels.append(label)
+  label_cursor.close()
+  recipe_dict['labels']=labels
+  return recipe_dict
 
 @app.before_request
 def before_request():
@@ -142,22 +166,70 @@ def loginredirect():
   return redirect('/login')
 
 # Save recipe
-@app.route('/saverecipe/<username>/<recipe_id>', methods=['POST'])
-def saverecipe(username,recipe_id):
-  select="SELECT COUNT(*) FROM Saves WHERE username=:username AND recipe_id=:recipe_id"
-  cursor=g.conn.execute(text(select),username=username, recipe_id=recipe_id)
-  for n in cursor:
-    num=n[0]
-    #print(num)
-  if (num == 0):
-    insert1="""INSERT INTO Saves VALUES (:username, :recipe_id)"""
-    t=g.conn.execute(text(insert1), username=username, recipe_id=recipe_id)
+# @app.route('/saverecipe/<username>/<recipe_id>', methods=['POST'])
+# def saverecipe(username,recipe_id):
+#   select="SELECT COUNT(*) FROM Saves WHERE username=:username AND recipe_id=:recipe_id"
+#   cursor=g.conn.execute(text(select),username=username, recipe_id=recipe_id)
+#   for n in cursor:
+#     num=n[0]
+#     #print(num)
+#   if (num == 0):
+#     insert1="""INSERT INTO Saves VALUES (:username, :recipe_id)"""
+#     t=g.conn.execute(text(insert1), username=username, recipe_id=recipe_id)
+#     t.close()
+  
+  # context={}
+  # context['username']=username
+  # context['recipe_id']=recipe_id 
+  # return render_template('saverecipe.html', **context)
+
+# Make a recipe book
+@app.route('/createrecipebook/<username>')
+def createrecipebook(username):
+  cursor = g.conn.execute("SELECT name, recipe_id FROM Post_Recipes")
+  recipes=[]
+  for i in cursor:
+    recipe={}
+    recipe['name']=i['name']
+    recipe['recipe_id']=i['recipe_id']
+    recipes.append(recipe)
+  context=dict(data=recipes)
+  context['username']=username
+  return render_template('recipebookform.html',**context)
+
+@app.route('/recipebook/<username>',methods=['POST'])
+def recipebook(username):
+  data={}
+  data['username']=username
+  data['book_name']=request.form['book_name']
+  data['public']=request.form['public']
+  recipes_included=request.form['recipes_included']
+  cursor = g.conn.execute("SELECT book_id FROM Owns_RecipeBooks ORDER BY book_id DESC LIMIT 1")
+  for i in cursor:
+    book_id=i[0]+1
+  cursor.close()
+  data['book_id']=book_id
+  cmd = 'INSERT INTO Owns_RecipeBooks(username, book_id,book_name,public) VALUES (:username,:book_id,:book_name,:public)'
+  t=g.conn.execute(text(cmd), **data)
+  t.close()
+  for recipe_id in recipes_included:
+    cmd = 'INSERT INTO Includes(book_id, recipe_id) VALUES (:book_id, :recipe_id)'
+    t=g.conn.execute(text(cmd),recipe_id=recipe_id,book_id=book_id)
     t.close()
   
-  context={}
+  cursor = g.conn.execute("SELECT * FROM Post_Recipes AS PR, Includes AS I WHERE I.book_id'"+book_id+"' AND PR.recipe_id=I.recipe_id")
+  recipes = []
+  for result in cursor:
+      # can also be accessed using result[0]
+    recipe_dict=format_recipe_dict(result)
+    recipes.append(recipe_dict)
+  context=dict(data=recipes)
+
+  context['book_id']=book_id
+  context['book_name']=data['book_name']
   context['username']=username
-  context['recipe_id']=recipe_id 
-  return render_template('saverecipe.html', **context)
+
+  return render_template("recipebook.html",**context)
 
 # Form for posting recipe 
 @app.route('/postrecipe/<username>')
@@ -278,20 +350,9 @@ def searchbying(username,ingredient):
   cursor = g.conn.execute("SELECT * FROM Post_Recipes AS PR, Needs as N WHERE N.ingredient='"+ingredient+"' AND PR.recipe_id=N.recipe_id")
   recipes = []
   for result in cursor:
-      # can also be accessed using result[0]
-    recipe_id=result['recipe_id']
-    ing_cursor=g.conn.execute("SELECT * FROM Needs WHERE recipe_id="+str(recipe_id))
-    recipe_dict={'name':result['name'],
-      'recipe_id':result['recipe_id'],
-      'username':result['username'],
-      'instructions':result['instructions'],
-      'ingredients':[]}
-    
-    for ing in ing_cursor:
-      recipe_dict['ingredients'].append(str(ing['measurement'])+' '+ing['units']+' '+ing['ingredient'])
+    # can also be accessed using result[0]
+    recipe_dict=format_recipe_dict(result)
     recipes.append(recipe_dict)
-
-    ing_cursor.close()
   cursor.close()
   context = dict(data = recipes)
   context['username']=username
@@ -316,19 +377,8 @@ def searchbyname(username,name):
   recipes = []
   for result in cursor:
       # can also be accessed using result[0]
-    recipe_id=result['recipe_id']
-    ing_cursor=g.conn.execute("SELECT * FROM Needs WHERE recipe_id="+str(recipe_id))
-    recipe_dict={'name':result['name'],
-      'recipe_id':result['recipe_id'],
-      'username':result['username'],
-      'instructions':result['instructions'],
-      'ingredients':[]}
-    
-    for ing in ing_cursor:
-      recipe_dict['ingredients'].append(str(ing['measurement'])+' '+ing['units']+' '+ing['ingredient'])
+    recipe_dict=format_recipe_dict(result)
     recipes.append(recipe_dict)
-
-    ing_cursor.close()
   cursor.close()
 
   context = dict(data = recipes)
@@ -366,36 +416,16 @@ def leavereview():
 #   cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
 #   g.conn.execute(text(cmd), name1 = name, name2 = name);
 #   return redirect('/')
-  
+
 @app.route('/allrecipes/<username>')
 def allrecipes(username):
   cursor = g.conn.execute("SELECT * FROM Post_Recipes")
   recipes = []
   for result in cursor:
-      # can also be accessed using result[0]
-    recipe_id=result['recipe_id']
-    ing_cursor=g.conn.execute("SELECT * FROM Needs WHERE recipe_id="+str(recipe_id))
-    recipe_dict={'name':result['name'],
-      'recipe_id':result['recipe_id'],
-      'username':result['username'],
-      'instructions':result['instructions'],
-      'ingredients':[]}
-    
-    for ing in ing_cursor:
-      recipe_dict['ingredients'].append(str(ing['measurement'])+' '+ing['units']+' '+ing['ingredient'])
+    # can also be accessed using result[0]
+    recipe_dict=format_recipe_dict(result)
     recipes.append(recipe_dict)
-
-    ing_cursor.close()
     
-    label_cursor=g.conn.execute("SELECT * FROM Create_Labels AS CL, Labels AS L WHERE recipe_id="+str(recipe_id)+" AND CL.label_name=L.label_name")
-    labels=[]
-    for l in label_cursor: 
-      label={}
-      label['label_name']=l['label_name']
-      label['color']=l['color']
-      labels.append(label)
-    label_cursor.close()
-    recipe_dict['labels']=labels
   cursor.close()
   recipes.append
   context = dict(data = recipes)

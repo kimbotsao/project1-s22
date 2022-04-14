@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}"/>
+    </head>
+ 
+    <body>
+        <h1>Create a RecipeBook</h1>
+        <form method="POST" action="/recipebookform/{{username}}">
+            <input type="hidden" name="username" value="{{data}}">
+            <p>RecipeBook name: <input type="text" name="book_name"></p>
+            <p>Public (select for yes): <input type="checkbox" name="public"><p></p>
+            {% for r in data %}
+                <p><input type="checkbox" name="recipes_included" value="{{r.recipe_id}}">{{r.name}}</p>
+            {% endfor %}
+            <p><input type="submit" value="Submit"></p>
+        </form>
+    </body>
+</html>
+

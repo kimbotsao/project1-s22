@@ -12,6 +12,7 @@
         <p><a href="/nameformpage/{{username}}}">Search by name</a></p>
         <p><a href="/createlabel/{{username}}">Create a label</a></p>
         <p><a href="/user/{{username}}">See my page</a></p>
+        <p><a href='/createrecipebook/{{username}}'>Create recipe book</a></p>
         <p><a href="/">Logout</a></p>
         <h2>All Recipes</h2>
         <div>
@@ -43,9 +44,9 @@
                     <input type="submit" value="Submit"></p>
             </form>
             <p><a href="/reviews/{{username}}/{{n.recipe_id}}">See Reviews</a></p>
-            <form method="POST" action="/saverecipe/{{username}}/{{n.recipe_id}}">
+            <!-- <form method="POST" action="/saverecipe/{{username}}/{{n.recipe_id}}">
                 <input type="submit" value="Save Recipe"></p>
-            </form>
+            </form> -->
             {% endfor %}
         </div>
     </body>
