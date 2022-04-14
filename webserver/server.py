@@ -145,9 +145,9 @@ def createaccountredirect():
   data['isadmin']=request.form['isadmin']
   insert1="""INSERT INTO Users(username,email,birthday) VALUES (:username, :email, :birthday)"""
   g.conn.execute(text(insert1),**data)
-  if request.form.get('isadmin'):
+  if request.form.get('isadmin') == 1:
     insert2="""INSERT INTO Admins(username) VALUES (:username)"""
-  g.conn.execute(text(insert2),**data)
+    g.conn.execute(text(insert2),**data)
   return redirect('/login')
 
 @app.route('/login')
@@ -441,7 +441,7 @@ def user(username):
 @app.route('/myrecipes/<username>')
 def myrecipes(username):
   recipes = []
-  rec_cursor = g.conn.execute("SELECT * FROM Post_Recipes WHERE username="+str(username))
+  rec_cursor = g.conn.execute("SELECT * FROM Post_Recipes WHERE username='"+str(username)+"'")
   for recipe in rec_cursor:
     id=recipe['recipe_id']
     ing_cursor=g.conn.execute("SELECT * FROM Needs WHERE recipe_id="+str(id))
@@ -479,11 +479,11 @@ def createlabel(username):
 def labelform():
   data={}
   data['username']=request.form['username']
-  data['labelname']=request.form['labelname']
+  data['label_name']=request.form['label_name']
   data['color']=request.form['color']
-  insert1="""INSERT INTO Create_Labels(username,labelname,color) VALUES (:username, :labelname, :color)"""
+  insert1="""INSERT INTO Create_Labels(username,label_name,color) VALUES (:username, :label_name, :color)"""
   g.conn.execute(text(insert1),**data)
-  return redirect('/login')
+  return redirect('/allrecipes/<username>')
 
 
 if __name__ == "__main__":
