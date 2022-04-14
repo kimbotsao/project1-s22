@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}"/>
+    </head>
+
+    <body> 
+        <h1>Recipe saved successfully</h1>
+        <div>
+            Recipe id: {{recipe_id}}<br>
+            Username: {{username}}<br>
+        </div>
+        <p><a href="/allrecipes/{{username}}">Return to Home</a></p>
+    </body>
+</html>

@@ -141,22 +141,31 @@ def loginredirect():
       return redirect('/allrecipes/'+username)
   return redirect('/login')
 
-# This one hasn't been used yet 
-# Need to figure out how to pass the username to through html ... or keep using form 
-@app.route('/index')
-def index(username):
-    print(request.args)
-    return render_template("index.html")
+# Save recipe
+@app.route('/saverecipe/<username>/<recipe_id>', methods=['POST'])
+def saverecipe(username,recipe_id):
+  select="SELECT COUNT(*) FROM Saves WHERE username=:username AND recipe_id=:recipe_id"
+  cursor=g.conn.execute(text(select),username=username, recipe_id=recipe_id)
+  for n in cursor:
+    num=n[0]
+    #print(num)
+  if (num == 0):
+    insert1="""INSERT INTO Saves VALUES (:username, :recipe_id)"""
+    t=g.conn.execute(text(insert1), username=username, recipe_id=recipe_id)
+    t.close()
+  
+  context={}
+  context['username']=username
+  context['recipe_id']=recipe_id 
+  return render_template('saverecipe.html', **context)
 
-# @app.route('/redirect',method=['POST'])
-# def pageredirect():
-
-
+# Form for posting recipe 
 @app.route('/postrecipe/<username>')
 def postrecipe(username):
   context=dict(data=username)
   return render_template("postrecipe.html",**context)
 
+# Posts the recipe 
 @app.route('/post',methods=['POST'])
 def post():
   # Get the form fields 
@@ -205,6 +214,7 @@ def post():
     t.close()
   return redirect('/recipeposted/'+str(data['username'])+'/'+str(recipe_id))
 
+# Page for after recipe is posted 
 @app.route('/recipeposted/<username>/<recipe_id>')
 def recipeposted(username,recipe_id):
   cursor = g.conn.execute("SELECT * FROM Post_Recipes WHERE recipe_id="+recipe_id)
@@ -229,6 +239,7 @@ def recipeposted(username,recipe_id):
 
   return render_template("recipeposted.html", **context)
 
+# View reviews for a certain recipe
 @app.route('/reviews/<username>/<recipe_id>')
 def reviews(username,recipe_id):
 
@@ -248,6 +259,7 @@ def reviews(username,recipe_id):
   context['username']=username 
   return render_template("reviews.html",**context)
 
+# Search by ingredient 
 @app.route('/ingformpage/<username>')
 def ingformpage(username):
   context=dict(data=username)
@@ -284,7 +296,45 @@ def searchbying(username,ingredient):
   context = dict(data = recipes)
   context['username']=username
 
-  return render_template("searchbying.html",**context)
+  return render_template("reciperesults.html",**context)
+
+# Search by name 
+@app.route('/nameformpage/<username>')
+def nameformpage(username):
+  context=dict(data=username)
+  return render_template("nameformpage.html",**context)
+
+@app.route('/nameform',methods=['POST'])
+def nameform():
+  name = request.form['name']
+  username=request.form['username']
+  return redirect('/searchbyname/'+username+'/'+name)
+
+@app.route('/searchbyname/<username>/<name>')
+def searchbyname(username,name):
+  cursor = g.conn.execute("SELECT * FROM Post_Recipes AS PR, Needs as N WHERE N.name='"+name+"' AND PR.recipe_id=N.recipe_id")
+  recipes = []
+  for result in cursor:
+      # can also be accessed using result[0]
+    recipe_id=result['recipe_id']
+    ing_cursor=g.conn.execute("SELECT * FROM Needs WHERE recipe_id="+str(recipe_id))
+    recipe_dict={'name':result['name'],
+      'recipe_id':result['recipe_id'],
+      'username':result['username'],
+      'instructions':result['instructions'],
+      'ingredients':[]}
+    
+    for ing in ing_cursor:
+      recipe_dict['ingredients'].append(str(ing['measurement'])+' '+ing['units']+' '+ing['ingredient'])
+    recipes.append(recipe_dict)
+
+    ing_cursor.close()
+  cursor.close()
+
+  context = dict(data = recipes)
+  context['username']=username
+
+  return render_template("reciperesults.html",**context)
 
 @app.route('/leavereview',methods=['POST'])
 def leavereview():
@@ -372,7 +422,7 @@ def myrecipes(username):
 def mybooks(username):
   # implement recipe books page
   books = []
-  bk_cursor = g.conn.execute("SELECT * FROM Owns_RecipeBooks WHERE username="+str(username))
+  bk_cursor = g.conn.execute("SELECT * FROM Owns_RecipeBooks WHERE username='"+str(username)+"'")
   for book in bk_cursor:
     # do smth
     i = 1

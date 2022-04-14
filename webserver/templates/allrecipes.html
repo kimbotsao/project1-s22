@@ -5,12 +5,14 @@
     </head>
 
     <body> 
-        <h1>Recipes</h1>
+        <h1>JK Recipes</h1>
 
         <p><a href="/postrecipe/{{username}}">Post Recipe</a></p>
         <p><a href="/ingformpage/{{username}}}">Search by ingredient</a></p>
+        <p><a href="/nameformpage/{{username}}}">Search by name</a></p>
         <p><a href="/createlabel/{{username}}">Create a label</a></p>
         <p><a href="/user/{{username}}">See my page</a></p>
+        <p><a href="/">Logout</a></p>
         <h2>All Recipes</h2>
         <div>
             {% for n in data %}
@@ -35,6 +37,9 @@
                     <input type="submit" value="Submit"></p>
             </form>
             <p><a href="/reviews/{{username}}/{{n.recipe_id}}">See Reviews</a></p>
+            <form method="POST" action="/saverecipe/{{username}}/{{n.recipe_id}}">
+                <input type="submit" value="Save Recipe"></p>
+            </form>
             {% endfor %}
         </div>
     </body>
