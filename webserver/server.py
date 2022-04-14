@@ -386,6 +386,16 @@ def allrecipes(username):
     recipes.append(recipe_dict)
 
     ing_cursor.close()
+    
+    label_cursor=g.conn.execute("SELECT * FROM Create_Labels AS CL, Labels AS L WHERE recipe_id="+str(recipe_id)+" AND CL.label_name=L.label_name")
+    labels=[]
+    for l in label_cursor: 
+      label={}
+      label['label_name']=l['label_name']
+      label['color']=l['color']
+      labels.append(label)
+    label_cursor.close()
+    recipe_dict['labels']=labels
   cursor.close()
   recipes.append
   context = dict(data = recipes)

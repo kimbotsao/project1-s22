@@ -19,10 +19,16 @@
             <div class="recipe_name">{{n.name}}</div>
             <div class="recipe_id">Recipe Number: {{n.recipe_id}}</div>
             <div class="username">By: {{n.username}}</div>
+            <div>
+                {% for l in n.labels %}
+                    <b style="color:{{l.color}}">{{l.label_name}}</b> 
+                {% endfor %}
+            </div>
             <ul>
                 {% for i in n.ingredients%}
                     <li>{{i}}</li>
                 {% endfor %}
+                
             </ul>
             <div>{{n.instructions}}</div>
             <form method="POST" action="/leavereview">
