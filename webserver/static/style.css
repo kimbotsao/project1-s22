@@ -11,6 +11,27 @@ h2{
   font-weight:bold; 
 }
 
+input:invalid {
+  border: 2px dashed red;
+}
+
+input:invalid:required {
+  background-image: linear-gradient(to right, pink, lightgreen);
+}
+
+input:valid {
+  border: 2px solid black;
+}
+
+.book_name{
+  font-size: 20pt;
+  font-weight: bold;
+}
+
+.book_id{
+  font-weight:bold;
+}
+
 .recipe_name{
   font-size: 20pt;
   font-weight: bold;

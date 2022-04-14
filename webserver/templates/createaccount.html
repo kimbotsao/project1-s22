@@ -6,9 +6,9 @@
 
     <body> 
         <form method="POST" action="/createaccountredirect">
-            <p>Username: <input type="text" name="username"> </p>
-            <p>Email: <input type="text" name="email"></p>
-            <p>Birthday: <input type="date" name="birthday"></p>
+            <p>Username: <input type="text" name="username" required> </p>
+            <p>Email: <input type="text" name="email" required></p>
+            <p>Birthday: <input type="date" name="birthday" required></p>
             <p>Admin role (select for yes): <input type="hidden" name="isadmin" value="off"><input type="checkbox" name="isadmin" value="on"><p>
             <input type="submit" value="Submit"></p>
         </form>
