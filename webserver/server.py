@@ -377,7 +377,7 @@ def nameform():
 
 @app.route('/searchbyname/<username>/<name>')
 def searchbyname(username,name):
-  cursor = g.conn.execute("SELECT * FROM Post_Recipes AS PR, Needs as N WHERE N.name='"+name+"' AND PR.recipe_id=N.recipe_id")
+  cursor = g.conn.execute("SELECT * FROM Post_Recipes AS PR, Needs as N WHERE N.ingredient='"+name+"' AND PR.recipe_id=N.recipe_id")
   recipes = []
   for result in cursor:
       # can also be accessed using result[0]
@@ -468,8 +468,11 @@ def mybooks(username):
   books = []
   bk_cursor = g.conn.execute("SELECT * FROM Owns_RecipeBooks WHERE username='"+str(username)+"'")
   for book in bk_cursor:
-    # do smth
-    i = 1
+    book_dict={'username':book['username'],
+      'book_id':book['book_id'],
+      'book_name':book['book_name'],
+      'public':book['public']}
+    books.append(book_dict)
   bk_cursor.close()
   context=dict(data=books)
   return render_template("mybooks.html",**context)
