@@ -203,7 +203,10 @@ def recipebook(username):
   data['username']=username
   data['book_name']=request.form['book_name']
   data['public']=request.form['public']
-  recipes_included=request.form['recipes_included']
+  recipes_included=request.form.getlist('recipes_included')
+
+  print(recipes_included)
+
   cursor = g.conn.execute("SELECT book_id FROM Owns_RecipeBooks ORDER BY book_id DESC LIMIT 1")
   for i in cursor:
     book_id=i[0]+1
@@ -217,8 +220,9 @@ def recipebook(username):
     t=g.conn.execute(text(cmd),recipe_id=recipe_id,book_id=book_id)
     t.close()
   
-  cursor = g.conn.execute("SELECT * FROM Post_Recipes AS PR, Includes AS I WHERE I.book_id'"+book_id+"' AND PR.recipe_id=I.recipe_id")
+  cursor = g.conn.execute("SELECT * FROM Post_Recipes AS PR, Includes AS I WHERE I.book_id='"+str(book_id)+"' AND PR.recipe_id=I.recipe_id")
   recipes = []
+
   for result in cursor:
       # can also be accessed using result[0]
     recipe_dict=format_recipe_dict(result)
@@ -228,8 +232,8 @@ def recipebook(username):
   context['book_id']=book_id
   context['book_name']=data['book_name']
   context['username']=username
-
-  return render_template("recipebook.html",**context)
+  
+  return render_template("recipebookdisplay.html",**context)
 
 # Form for posting recipe 
 @app.route('/postrecipe/<username>')

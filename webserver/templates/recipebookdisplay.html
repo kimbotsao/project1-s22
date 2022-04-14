@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}"/>
+    </head>
+    
+    <body> 
+        <h2>{{book_id}} {{book_name}}</h2>
+        <h3>{{username}}</h3>
+        <div>
+            {% for n in data %}
+            <div class="recipe_name">{{n.name}}</div>
+            <div class="recipe_id">Recipe Number: {{n.recipe_id}}</div>
+            <div class="username">By: {{n.username}}</div>
+            <ul>
+                {% for i in n.ingredients%}
+                    <li>{{i}}</li>
+                {% endfor %}
+            </ul>
+            <div>{{n.instructions}}</div>
+            <form method="POST" action="/leavereview">
+                <p>Review: <input type="text" name="body"> </p>
+                <p>Rating: 1<input type="radio" name="rating" value=1>
+                    2<input type="radio" name="rating" value=2>
+                    3<input type="radio" name="rating" value=3>
+                    4<input type="radio" name="rating" value=4>
+                    5<input type="radio" name="rating" value=5>
+                    <input type="hidden" name="username" value="{{username}}">
+                    <input type="hidden" name="recipe_id" value="{{n.recipe_id}}">
+                    <input type="submit" value="Submit"></p>
+            </form>
+            <p><a href="/reviews/{{username}}/{{n.recipe_id}}">See Reviews</a></p>
+            {% endfor %}
+        </div>
+        <p><a href="/allrecipes/{{username}}">Return to Home</a></p>
+    </body>
+</html>

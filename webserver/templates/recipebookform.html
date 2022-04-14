@@ -1,19 +1,23 @@
 <!DOCTYPE html>
 <html>
-    <head>
+    <!-- <head>
         <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}"/>
-    </head>
+    </head> -->
  
     <body>
         <h1>Create a RecipeBook</h1>
-        <form method="POST" action="/recipebookform/{{username}}">
+        <form method="POST" action="/recipebook/{{username}}">
             <input type="hidden" name="username" value="{{data}}">
             <p>RecipeBook name: <input type="text" name="book_name"></p>
-            <p>Public (select for yes): <input type="checkbox" name="public"><p></p>
-            {% for r in data %}
-                <p><input type="checkbox" name="recipes_included" value="{{r.recipe_id}}">{{r.name}}</p>
-            {% endfor %}
+            <p>Public (select for yes): <input type="hidden" name="public" value="off"><input type="checkbox" name="public"><p></p>
+            <label for="recipes_included">Include which recipes?</label>
+            <select multiple name="recipes_included" id="recipes_included">
+                {% for r in data %}
+                    <option value="{{r.recipe_id}}">{{r.name}}</option>
+                {% endfor %}
+            </select>
             <p><input type="submit" value="Submit"></p>
+        
         </form>
     </body>
 </html>
