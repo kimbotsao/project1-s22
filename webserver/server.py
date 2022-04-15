@@ -235,6 +235,27 @@ def recipebook(username):
   
   return render_template("recipebookdisplay.html",**context)
 
+# Recipe
+@app.route('/recipebookview/<username>/<book_id>')
+def recipebookview(username,book_id):
+  cursor = g.conn.execute("SELECT * FROM Post_Recipes AS PR, Includes AS I WHERE I.book_id='"+str(book_id)+"' AND PR.recipe_id=I.recipe_id")
+  recipes = []
+
+  for result in cursor:
+      # can also be accessed using result[0]
+    recipe_dict=format_recipe_dict(result)
+    recipes.append(recipe_dict)
+  context=dict(data=recipes)
+  
+  cursor = g.conn.execute("SELECT * FROM Owns_RecipeBooks WHERE book_id='"+str(book_id)+"'")
+  for i in cursor:
+    book_name=i['book_name']
+  cursor.close()
+  context['book_id']=book_id
+  context['book_name']=book_name
+  context['username']=username
+  return render_template("recipebookdisplay.html",**context)
+
 # Form for posting recipe 
 @app.route('/postrecipe/<username>')
 def postrecipe(username):
@@ -475,6 +496,7 @@ def mybooks(username):
     books.append(book_dict)
   bk_cursor.close()
   context=dict(data=books)
+  context['username']=username
   return render_template("mybooks.html",**context)
 
 @app.route('/createlabel/<username>')

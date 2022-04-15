@@ -8,9 +8,8 @@
         <h1>My Books</h1>
         <div>
             {% for n in data %}
-            <div class="book_name">{{n.book_name}}</div>
+            <a href='/recipebookview/{{username}}/{{n.book_id}}'>{{n.book_name}}</a>
             <div class="book_id">Book Number: {{n.book_id}}</div>
-            
             {% endfor %}
         </div>
     </body>
