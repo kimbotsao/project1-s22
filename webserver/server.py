@@ -514,6 +514,23 @@ def labelform():
   g.conn.execute(text(insert1),**data)
   return redirect('/allrecipes/<username>')
 
+@app.route('/followusers/<username>')
+def followusers(username):
+  # to do add list of all users to context
+  context=dict(data=username)
+  return render_template("followuser.html",**context)
+
+# can follow multiple people at once just iterate through and do a execute for each
+@app.route('/followform',methods=['POST'])
+def followform():
+  data={}
+  data['usernames']=request.form['usernames']
+  for user in usernames:
+    insert1="""INSERT INTO Create_Labels(username,label_name,color) VALUES (:username, :label_name, :color)"""
+    g.conn.execute(text(insert1),**data)
+  return redirect('/allrecipes/<username>')
+
+# add my followers and my following functions for user page display
 
 if __name__ == "__main__":
   import click
