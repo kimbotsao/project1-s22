@@ -5,7 +5,8 @@
     </head>
  
     <body>
-        <form method="POST" action="/followform">
+        <form method="POST" action="/followform/{{username}}">
+            <input type="hidden" name="username" value="{{data}}">
             <select name="users" id="users" multiple>
                 <!-- loop through all users in context -->
                 {% for n in data %}

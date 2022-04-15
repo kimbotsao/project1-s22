@@ -386,7 +386,7 @@ def ingformpage(username):
 def ingform():
   ing = request.form['ingredient']
   username=request.form['username']
-  print(ing)
+  #print(ing)
   return redirect('/searchbying/'+username+'/'+ing)
 
 @app.route('/searchbying/<username>/<ingredient>')
@@ -475,7 +475,7 @@ def leavereview():
   cursor = g.conn.execute("SELECT review_id FROM Leaves_Review ORDER BY review_id DESC LIMIT 1")
   for i in cursor:
     review_id=i[0]+1
-    print(review_id)
+    #print(review_id)
   data['review_id']=review_id+1
   cursor.close()
 
@@ -574,13 +574,13 @@ def createlabel(username):
   context=dict(data=username)
   cursor = g.conn.execute("SELECT COUNT(*) FROM Admins WHERE username='"+username+"'")
   for i in cursor:
-    print(i[0])
+    #print(i[0])
     if (i[0]==0):
       return redirect('/allrecipes/'+username)
   return render_template("createlabel.html",**context)
 
 @app.route('/labelform',methods=['POST'])
-def labelform():
+def labelform(username):
   data={}
   data['username']=request.form['username']
   data['label_name']=request.form['label_name']
@@ -599,20 +599,21 @@ def followusers(username):
       everyuser.append(user_dict)
   #data.append({'current_user':username})
   context=dict(data=everyuser)
+  context['username']=username
   return render_template("followuser.html",**context)
 
 # can follow multiple people at once just iterate through and do a execute for each
-@app.route('/followform',methods=['POST'])
-def followform():
-  print("in follow form")
-  data={}
-  data['usernames']=request.form['usernames']
-  print("data populated")
-  print(data)
-  for user in data['usernames']:
+@app.route('/followform/<username>',methods=['POST'])
+def followform(username):
+  data=[]
+  data=request.form.getlist('users')
+  for user in data:
+    data_dict={}
+    data_dict['username']=str(username)
+    data_dict['usernames']=user
     insert1="""INSERT INTO Follows(followed_by, following) VALUES (:username, :usernames)"""
-    g.conn.execute(text(insert1),**data)
-  return redirect('/allrecipes/<username>')
+    g.conn.execute(text(insert1),**data_dict)
+  return redirect('/allrecipes/'+username)
 
 # add my followers and my following functions for user page display
 @app.route('/following/<username>')
