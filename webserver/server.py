@@ -572,6 +572,11 @@ def savedrecipebooks(username):
 @app.route('/createlabel/<username>')
 def createlabel(username):
   context=dict(data=username)
+  cursor = g.conn.execute("SELECT COUNT(*) FROM Admins WHERE username='"+username+"'")
+  for i in cursor:
+    print(i[0])
+    if (i[0]==0):
+      return redirect('/allrecipes/'+username)
   return render_template("createlabel.html",**context)
 
 @app.route('/labelform',methods=['POST'])
@@ -582,7 +587,7 @@ def labelform():
   data['color']=request.form['color']
   insert1="""INSERT INTO Create_Labels(username,label_name,color) VALUES (:username, :label_name, :color)"""
   g.conn.execute(text(insert1),**data)
-  return redirect('/allrecipes/<username>')
+  return redirect('/allrecipes/'+username)
 
 @app.route('/followusers/<username>')
 def followusers(username):
