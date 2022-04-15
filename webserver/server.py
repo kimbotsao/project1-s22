@@ -260,6 +260,12 @@ def recipebookview(username,book_id):
 @app.route('/postrecipe/<username>')
 def postrecipe(username):
   context=dict(data=username)
+  cursor=g.conn.execute("SELECT label_name FROM Create_Labels")
+  labels=[]
+  for i in cursor:
+    labels.append(i['label_name'])
+
+  context['labels']=labels
   return render_template("postrecipe.html",**context)
 
 # Posts the recipe 
@@ -271,6 +277,7 @@ def post():
   ingredients=request.form['ingredient']
   data['name']=request.form['name']
   data['instructions']=request.form['instructions']
+  labels=request.form.getlist('labels')
 
   # Get the index of the last posted recipe, add 1 
   cursor = g.conn.execute("SELECT recipe_id FROM Post_Recipes ORDER BY recipe_id DESC LIMIT 1")
@@ -309,6 +316,11 @@ def post():
     insert2="""INSERT INTO Needs(recipe_id, ingredient, measurement, units) VALUES (:recipe_id, :ingredient, :measurement, :units)"""
     t=g.conn.execute(text(insert2), **ing_dict)
     t.close()
+  for label in labels: 
+    insert3="""INSERT INTO Labels(label_name, recipe_id) VALUES (:label_name,:recipe_id)"""
+    t=g.conn.execute(text(insert3), label_name=label, recipe_id=recipe_id)
+    t.close()
+
   return redirect('/recipeposted/'+str(data['username'])+'/'+str(recipe_id))
 
 # Page for after recipe is posted 
@@ -318,19 +330,8 @@ def recipeposted(username,recipe_id):
   recipes = []
   for result in cursor:
       # can also be accessed using result[0]
-    recipe_id=result['recipe_id']
-    ing_cursor=g.conn.execute("SELECT * FROM Needs WHERE recipe_id="+str(recipe_id))
-    recipe_dict={'name':result['name'],
-      'recipe_id':result['recipe_id'],
-      'username':result['username'],
-      'instructions':result['instructions'],
-      'ingredients':[]}
-    
-    for ing in ing_cursor:
-      recipe_dict['ingredients'].append(str(ing['measurement'])+' '+ing['units']+' '+ing['ingredient'])
+    recipe_dict=format_recipe_dict(result)
     recipes.append(recipe_dict)
-
-    ing_cursor.close()
   cursor.close()
   context = dict(data = recipes)
 

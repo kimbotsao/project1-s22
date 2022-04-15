@@ -12,6 +12,12 @@
             <p>Ingredients:  <textarea rows="10" cols="50" name="ingredient" placeholder="(format as measurement, unit, ingredient; measurement...)"></textarea></p>
             <!-- <p>Instructions: <input type="text" name="instructions"></p> -->
             <p>Instructions: <textarea rows="20" cols="50" name="instructions"></textarea></p>
+            <p>Labels (select multiple): </p>
+            <select multiple name="labels" id="labels">
+                {% for l in labels %}
+                    <option value="{{l}}">{{l}}</option>
+                {% endfor %}
+            </select>
             <p><input type="submit" value="Submit"></p>
         </form>
     </body>
