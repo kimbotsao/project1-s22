@@ -5,14 +5,15 @@
     </head>
 
     <body>
-        <h1>{{pagetitle}}</h1>
+        <h1>My Books</h1>
         <div>
             {% for n in data %}
             <a href='/recipebookview/{{username}}/{{n.book_id}}'>{{n.book_name}}</a>
             <div class="book_id">Book Number: {{n.book_id}}</div>
+            <form method="POST" action="/saverecipebook/{{username}}/{{n.book_id}}">
+                <input type="submit" value="Save">
+            </form>
             {% endfor %}
         </div>
-        <p><a href="/allrecipes/{{username}}">Return to Home</a></p>
-
     </body>
 </html>

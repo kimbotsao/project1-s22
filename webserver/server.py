@@ -60,31 +60,6 @@ engine = create_engine(DATABASEURI)
 # );""")
 # engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
 
-def format_recipe_dict(result):
-  
-  recipe_id=result['recipe_id']
-  ing_cursor=g.conn.execute("SELECT * FROM Needs WHERE recipe_id="+str(recipe_id))
-  recipe_dict={'name':result['name'],
-    'recipe_id':result['recipe_id'],
-    'username':result['username'],
-    'instructions':result['instructions'],
-    'ingredients':[]}
-    
-  for ing in ing_cursor:
-    recipe_dict['ingredients'].append(str(ing['measurement'])+' '+ing['units']+' '+ing['ingredient'])
-
-  ing_cursor.close()
-    
-  label_cursor=g.conn.execute("SELECT * FROM Create_Labels AS CL, Labels AS L WHERE recipe_id="+str(recipe_id)+" AND CL.label_name=L.label_name")
-  labels=[]
-  for l in label_cursor: 
-    label={}
-    label['label_name']=l['label_name']
-    label['color']=l['color']
-    labels.append(label)
-  label_cursor.close()
-  recipe_dict['labels']=labels
-  return recipe_dict
 
 @app.before_request
 def before_request():
@@ -165,23 +140,32 @@ def loginredirect():
       return redirect('/allrecipes/'+username)
   return redirect('/login')
 
-# Save recipe
-# @app.route('/saverecipe/<username>/<recipe_id>', methods=['POST'])
-# def saverecipe(username,recipe_id):
-#   select="SELECT COUNT(*) FROM Saves WHERE username=:username AND recipe_id=:recipe_id"
-#   cursor=g.conn.execute(text(select),username=username, recipe_id=recipe_id)
-#   for n in cursor:
-#     num=n[0]
-#     #print(num)
-#   if (num == 0):
-#     insert1="""INSERT INTO Saves VALUES (:username, :recipe_id)"""
-#     t=g.conn.execute(text(insert1), username=username, recipe_id=recipe_id)
-#     t.close()
+# Takes a row of database query from a recipe and returns a recipe_dict
+def format_recipe_dict(result):
   
-  # context={}
-  # context['username']=username
-  # context['recipe_id']=recipe_id 
-  # return render_template('saverecipe.html', **context)
+  recipe_id=result['recipe_id']
+  ing_cursor=g.conn.execute("SELECT * FROM Needs WHERE recipe_id="+str(recipe_id))
+  recipe_dict={'name':result['name'],
+    'recipe_id':result['recipe_id'],
+    'username':result['username'],
+    'instructions':result['instructions'],
+    'ingredients':[]}
+    
+  for ing in ing_cursor:
+    recipe_dict['ingredients'].append(str(ing['measurement'])+' '+ing['units']+' '+ing['ingredient'])
+
+  ing_cursor.close()
+    
+  label_cursor=g.conn.execute("SELECT * FROM Create_Labels AS CL, Labels AS L WHERE recipe_id="+str(recipe_id)+" AND CL.label_name=L.label_name")
+  labels=[]
+  for l in label_cursor: 
+    label={}
+    label['label_name']=l['label_name']
+    label['color']=l['color']
+    labels.append(label)
+  label_cursor.close()
+  recipe_dict['labels']=labels
+  return recipe_dict
 
 # Make a recipe book
 @app.route('/createrecipebook/<username>')
@@ -235,7 +219,40 @@ def recipebook(username):
   
   return render_template("recipebookdisplay.html",**context)
 
-# Recipe
+# All public recipe books
+@app.route('/allrecipebooks/<username>')
+def allrecipebooks(username):
+  cursor=g.conn.execute("SELECT * FROM Owns_RecipeBooks WHERE public=true")
+  recipebooks=[]
+  for result in cursor:
+    book={}
+    book['book_name']=result['book_name']
+    book['book_id']=result['book_id']
+    recipebooks.append(book)
+  cursor.close()
+
+  context=dict(data=recipebooks)
+  context['username']=username
+
+  return render_template('allrecipebooks.html',**context)
+
+# Saves a recipe book
+@app.route('/saverecipebook/<username>/<book_id>',methods=['POST'])
+def saverecipebook(username,book_id):
+  #check if already saved 
+  select="SELECT COUNT(*) FROM Saves WHERE username=:username AND book_id=:book_id"
+  cursor=g.conn.execute(text(select),username=username, book_id=book_id)
+  for n in cursor:
+      num=n[0]
+      #print(num)
+  cursor.close
+  if (num == 0):
+    insert="INSERT INTO Saves VALUES (:book_id,:username)"
+    n=g.conn.execute(text(insert), book_id=book_id,username=username)
+    n.close()
+  return redirect('/savedrecipebooks/'+username)
+
+# View a recipe book 
 @app.route('/recipebookview/<username>/<book_id>')
 def recipebookview(username,book_id):
   cursor = g.conn.execute("SELECT * FROM Post_Recipes AS PR, Includes AS I WHERE I.book_id='"+str(book_id)+"' AND PR.recipe_id=I.recipe_id")
@@ -498,6 +515,24 @@ def mybooks(username):
   bk_cursor.close()
   context=dict(data=books)
   context['username']=username
+  context['pagetitle']='My Recipe Books'
+  return render_template("mybooks.html",**context)
+
+@app.route('/savedrecipebooks/<username>')
+def savedrecipebooks(username):
+  # implement recipe books page
+  books = []
+  bk_cursor = g.conn.execute("SELECT * FROM Owns_RecipeBooks AS O, Saves AS S WHERE S.book_id=O.book_id AND S.username='"+username+"'")
+  for book in bk_cursor:
+    book_dict={'username':book['username'],
+      'book_id':book['book_id'],
+      'book_name':book['book_name'],
+      'public':book['public']}
+    books.append(book_dict)
+  bk_cursor.close()
+  context=dict(data=books)
+  context['username']=username
+  context['pagetitle']='Saved Recipe Books'
   return render_template("mybooks.html",**context)
 
 @app.route('/createlabel/<username>')
