@@ -5,12 +5,11 @@
     </head>
 
     <body> 
-        <h1>Review posted</h1>
+        <h1>Review posted for Recipe {{recipe_id}}</h1>
         <div>
-            Recipe id: {{recipe_id}}<br>
             Review id: {{review_id}}<br> 
             Username: {{username}}<br>
-            Review: {{review}}<br>
+            {{body}}<br>
             Rating: {{rating}}
         </div>
         <p><a href="/allrecipes/{{username}}">Return to Home</a></p>

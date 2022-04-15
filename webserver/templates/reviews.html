@@ -5,15 +5,13 @@
     </head>
 
     <body> 
-        <h1>Reviews</h1>
-        <div>Recipe id: {{recipe_id}}</div>
+        <h1>Reviews for Recipe {{recipe_id}}</h1>
         <div>
             {% for n in data %}
             <div>Review id: {{n.review_id}}</div>
-            
             <div>By: {{n.username}}</div>
-            <div>Body: {{n.body}}</div>
-            <div>By: {{n.rating}}</div>
+            <div>{{n.body}}</div>
+            <div>Rating: {{n.rating}}</div>
             <ul>
                 {% for i in n.ingredients%}
                     <li>{{i}}</li>
