@@ -200,8 +200,8 @@ def recipebook(username):
   t=g.conn.execute(text(cmd), **data)
   t.close()
   for recipe_id in recipes_included:
-    cmd = 'INSERT INTO Includes(book_id, recipe_id) VALUES (:book_id, :recipe_id)'
-    t=g.conn.execute(text(cmd),recipe_id=recipe_id,book_id=book_id)
+    cmd = 'INSERT INTO Includes(book_id,book_username, recipe_id) VALUES (:book_id,:book_username, :recipe_id)'
+    t=g.conn.execute(text(cmd),recipe_id=recipe_id,book_id=book_id,book_username=username)
     t.close()
   
   cursor = g.conn.execute("SELECT * FROM Post_Recipes AS PR, Includes AS I WHERE I.book_id='"+str(book_id)+"' AND PR.recipe_id=I.recipe_id")
@@ -228,6 +228,7 @@ def allrecipebooks(username):
     book={}
     book['book_name']=result['book_name']
     book['book_id']=result['book_id']
+    book['book_username']=result['username']
     recipebooks.append(book)
   cursor.close()
 
@@ -237,8 +238,8 @@ def allrecipebooks(username):
   return render_template('allrecipebooks.html',**context)
 
 # Saves a recipe book
-@app.route('/saverecipebook/<username>/<book_id>',methods=['POST'])
-def saverecipebook(username,book_id):
+@app.route('/saverecipebook/<username>/<book_id>/<book_username>',methods=['POST'])
+def saverecipebook(username,book_id,book_username):
   #check if already saved 
   select="SELECT COUNT(*) FROM Saves WHERE username=:username AND book_id=:book_id"
   cursor=g.conn.execute(text(select),username=username, book_id=book_id)
@@ -247,8 +248,8 @@ def saverecipebook(username,book_id):
       #print(num)
   cursor.close
   if (num == 0):
-    insert="INSERT INTO Saves VALUES (:book_id,:username)"
-    n=g.conn.execute(text(insert), book_id=book_id,username=username)
+    insert="INSERT INTO Saves VALUES (:book_id,:book_username,:username)"
+    n=g.conn.execute(text(insert), book_id=book_id,username=username,book_username=book_username)
     n.close()
   return redirect('/savedrecipebooks/'+username)
 

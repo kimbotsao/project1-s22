@@ -1,6 +1,7 @@
 body{ 
   font-size: 15pt;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
+  margin: 35px;
 }
 
 h1{
@@ -43,4 +44,29 @@ input:valid {
   
 .username{
   font-style:italic;
+}
+
+.nav_bar {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #333;
+}
+
+.linav {
+  float: left;
+}
+
+li a {
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+/* Change the link color to #111 (black) on hover */
+li a:hover {
+  background-color: #111;
 }
