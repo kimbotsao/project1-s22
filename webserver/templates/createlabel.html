@@ -6,9 +6,9 @@
 
     <body> 
         <form method="POST" action="/labelform">
-            <p>Username: <input type="text" name="username" value="{{data}}"> </p>
-            <p>Label name: <input type="text" name="label_name"></p>
-            <p>Color: <input type="color" name="color"></p>
+            <p>Username: <input type="text" name="username" value="{{data}}" required> </p>
+            <p>Label name: <input type="text" name="label_name" required></p>
+            <p>Color: <input type="color" name="color" required></p>
             <input type="submit" value="Submit"></p>
         </form>
     </body>

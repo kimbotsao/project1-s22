@@ -10,7 +10,7 @@
             <!-- <input type="text" name="label">  -->
             <p>Label:</p>
             {% for n in labels %}
-                <p><input type="radio" name="label" value="{{n}}">{{n}}</p>
+                <p><input type="radio" name="label" value="{{n}}" required>{{n}}</p>
             {% endfor %}
             <p><input type="submit" value="Submit"></p>
         </form>

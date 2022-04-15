@@ -7,11 +7,11 @@
     <body>
         <form method="POST" action="/post">
             <input type="hidden" name="username" value="{{data}}">
-            <p>Name of recipe: <input type="text" name="name"></p>
+            <p>Name of recipe: <input type="text" name="name" required></p>
             <!-- <p>Ingredients (format as measurement, unit, ingredient; measurement...): <input type="text" name="ingredient"> </p> -->
-            <p>Ingredients:  <textarea rows="10" cols="50" name="ingredient" placeholder="(format as measurement, unit, ingredient; measurement...)"></textarea></p>
+            <p>Ingredients:  <textarea rows="10" cols="50" name="ingredient" placeholder="(format as measurement, unit, ingredient; measurement...)" required></textarea></p>
             <!-- <p>Instructions: <input type="text" name="instructions"></p> -->
-            <p>Instructions: <textarea rows="20" cols="50" name="instructions"></textarea></p>
+            <p>Instructions: <textarea rows="20" cols="50" name="instructions" required></textarea></p>
             <p>Labels (select multiple): </p>
             <select multiple name="labels" id="labels">
                 {% for l in labels %}

@@ -8,7 +8,7 @@
         <h1>Create a RecipeBook</h1>
         <form method="POST" action="/recipebook/{{username}}">
             <input type="hidden" name="username" value="{{data}}">
-            <p>RecipeBook name: <input type="text" name="book_name"></p>
+            <p>RecipeBook name: <input type="text" name="book_name" required></p>
             <p>Public (select for yes): <input type="hidden" name="public" value="off"><input type="checkbox" name="public"><p></p>
             <label for="recipes_included">Include which recipes?</label>
             <select multiple name="recipes_included" id="recipes_included">

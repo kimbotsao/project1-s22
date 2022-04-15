@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='style.css') }}"/>
+    </head>
+
+    <body> 
+        <h1>My Following</h1>
+        <div>
+            {% for n in data %}
+            <div class="following">{{n.following}}</div>
+            {% endfor %}
+        </div>
+    </body>
+</html>

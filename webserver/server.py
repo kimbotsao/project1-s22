@@ -505,7 +505,6 @@ def allrecipes(username):
     recipes.append(recipe_dict)
     
   cursor.close()
-  recipes.append
   context = dict(data = recipes)
   context['username']=username
 
@@ -587,21 +586,49 @@ def labelform():
 
 @app.route('/followusers/<username>')
 def followusers(username):
-  # to do add list of all users to context
-  context=dict(data=username)
+  everyuser = []
+  all_users = g.conn.execute("""SELECT * FROM Users""")
+  for user in all_users:
+    if user['username'] != username:
+      user_dict={'username':user['username']}
+      everyuser.append(user_dict)
+  #data.append({'current_user':username})
+  context=dict(data=everyuser)
   return render_template("followuser.html",**context)
 
 # can follow multiple people at once just iterate through and do a execute for each
 @app.route('/followform',methods=['POST'])
 def followform():
+  print("in follow form")
   data={}
   data['usernames']=request.form['usernames']
-  for user in usernames:
-    insert1="""INSERT INTO Create_Labels(username,label_name,color) VALUES (:username, :label_name, :color)"""
+  print("data populated")
+  print(data)
+  for user in data['usernames']:
+    insert1="""INSERT INTO Follows(followed_by, following) VALUES (:username, :usernames)"""
     g.conn.execute(text(insert1),**data)
   return redirect('/allrecipes/<username>')
 
 # add my followers and my following functions for user page display
+@app.route('/following/<username>')
+def following(username):
+  following = []
+  foll_cursor = g.conn.execute("SELECT * FROM Follows WHERE followed_by='"+str(username)+"'")
+  for user in foll_cursor:
+    foll_dict = {'following':user['following']}
+    following.append(foll_dict)
+  context=dict(data=following)
+  return render_template("following.html",**context)
+
+@app.route('/followers/<username>')
+def followers(username):
+  followers = []
+  foll_cursor = g.conn.execute("SELECT * FROM Follows WHERE following='"+str(username)+"'")
+  for user in foll_cursor:
+    foll_dict = {'followers':user['followed_by']}
+    followers.append(foll_dict)
+  context=dict(data=followers)
+  return render_template("followers.html",**context)
 
 if __name__ == "__main__":
   import click

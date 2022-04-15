@@ -50,8 +50,8 @@
             </ul>
             <div>{{n.instructions}}</div>
             <form method="POST" action="/leavereview">
-                <p>Review: <input type="text" name="body"> </p>
-                <p>Rating: 1<input type="radio" name="rating" value=1>
+                <p>Review: <input type="text" name="body" required> </p>
+                <p>Rating: 1<input type="radio" name="rating" value=1 required>
                     2<input type="radio" name="rating" value=2>
                     3<input type="radio" name="rating" value=3>
                     4<input type="radio" name="rating" value=4>

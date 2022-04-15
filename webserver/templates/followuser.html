@@ -8,10 +8,10 @@
         <form method="POST" action="/followform">
             <select name="users" id="users" multiple>
                 <!-- loop through all users in context -->
-                <option value="volvo">Volvo</option>
-                <option value="saab">Saab</option>
-                <option value="opel">Opel</option>
-                <option value="audi">Audi</option>
+                {% for n in data %}
+                <option value="{{n.username}}">{{n.username}}</option>
+                {% endfor %}
+                <input type="submit" value="Submit"></p>
               </select>
         </form>
     </body>
