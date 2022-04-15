@@ -416,7 +416,41 @@ def nameform():
 
 @app.route('/searchbyname/<username>/<name>')
 def searchbyname(username,name):
-  cursor = g.conn.execute("SELECT * FROM Post_Recipes AS PR, Needs as N WHERE N.ingredient='"+name+"' AND PR.recipe_id=N.recipe_id")
+  cursor = g.conn.execute("SELECT DISTINCT * FROM Post_Recipes AS PR WHERE PR.name='"+name+"'")
+  
+  recipes = []
+  for result in cursor:
+      # can also be accessed using result[0]
+    recipe_dict=format_recipe_dict(result)
+    recipes.append(recipe_dict)
+  cursor.close()
+
+  context = dict(data = recipes)
+  context['username']=username
+
+  return render_template("reciperesults.html",**context)
+
+#Search by label
+@app.route('/labelformpage/<username>')
+def labelformpage(username):
+  context=dict(data=username)
+  cursor=g.conn.execute("SELECT label_name FROM Create_Labels")
+  labels=[]
+  for i in cursor:
+    labels.append(i['label_name'])
+  context['labels']=labels
+  return render_template("labelformpage.html",**context)
+
+@app.route('/labelformsearch',methods=['POST'])
+def labelformsearch():
+  label = request.form['label']
+  username=request.form['username']
+  return redirect('/searchbylabel/'+username+'/'+label)
+
+@app.route('/searchbylabel/<username>/<label_name>')
+def searchbylabel(username,label_name):
+  cursor = g.conn.execute("SELECT * FROM Post_Recipes AS PR, Labels AS L WHERE L.label_name='"+label_name+"' AND L.recipe_id=PR.recipe_id")
+  
   recipes = []
   for result in cursor:
       # can also be accessed using result[0]
